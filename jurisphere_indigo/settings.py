@@ -23,6 +23,11 @@ DATABASES = {"default": _database, "direct": _database}
 AWS_S3_ENDPOINT_URL = "https://storage.googleapis.com"
 AWS_S3_REGION_NAME = "auto"
 
+# Origins allowed to submit forms besides the service's own host. Access through
+# `gcloud run services proxy` arrives with Origin http://localhost:8080 while Django sees the
+# run.app host, so CSRF rejects it unless that origin is trusted.
+CSRF_TRUSTED_ORIGINS = os.environ["CSRF_TRUSTED_ORIGINS"].split(",")
+
 # Accounts are created by an admin. The signup form rejects submissions, so its reCAPTCHA
 # (Indigo's default Google test keys) is never relied on.
 ACCOUNT_SIGNUP_ENABLED = False
