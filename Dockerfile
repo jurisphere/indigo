@@ -65,11 +65,11 @@ RUN python manage.py collectstatic --noinput -i docs -i \*.scss 2>&1
 
 # Runtime configuration shared by every deployment; per-environment values come from the
 # environment at deploy time. Set after the asset build, which runs on Indigo's default settings.
-# The AWS_* checksum flags stop boto3 sending checksum headers that GCS's S3-compatible API rejects.
+# These two must be real env vars (not settings in jurisphere_indigo/settings.py): DEBUG drives
+# several if-DEBUG branches in indigo/settings.py at import time (storage backend, secure cookies,
+# asset pipelining, Sentry logging), so it has to be correct before that module is even imported.
 ENV DJANGO_SETTINGS_MODULE=jurisphere_indigo.settings \
-    DJANGO_DEBUG=false \
-    AWS_REQUEST_CHECKSUM_CALCULATION=when_required \
-    AWS_RESPONSE_CHECKSUM_VALIDATION=when_required
+    DJANGO_DEBUG=false
 
 # Cloud Run sets $PORT. Document parsing can run for minutes, hence the long worker timeout.
 CMD gunicorn indigo.wsgi --bind 0.0.0.0:${PORT:-8000} --timeout 300 --workers 2
