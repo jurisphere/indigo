@@ -63,5 +63,13 @@ RUN python manage.py compilescss
 # Note that we ignore 'docs' directories because some components have badly formed docs CSS.
 RUN python manage.py collectstatic --noinput -i docs -i \*.scss 2>&1
 
+# Runtime configuration shared by every deployment; per-environment values come from the
+# environment at deploy time. Set after the asset build, which runs on Indigo's default settings.
+# The AWS_* checksum flags stop boto3 sending checksum headers that GCS's S3-compatible API rejects.
+ENV DJANGO_SETTINGS_MODULE=jurisphere_indigo.settings \
+    DJANGO_DEBUG=false \
+    AWS_REQUEST_CHECKSUM_CALCULATION=when_required \
+    AWS_RESPONSE_CHECKSUM_VALIDATION=when_required
+
 # Cloud Run sets $PORT. Document parsing can run for minutes, hence the long worker timeout.
 CMD gunicorn indigo.wsgi --bind 0.0.0.0:${PORT:-8000} --timeout 300 --workers 2
