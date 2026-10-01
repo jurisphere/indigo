@@ -23,5 +23,10 @@ DATABASES = {"default": _database, "direct": _database}
 AWS_S3_ENDPOINT_URL = "https://storage.googleapis.com"
 AWS_S3_REGION_NAME = "auto"
 
+# Accounts are created by an admin. The signup form rejects submissions, so its reCAPTCHA
+# (Indigo's default Google test keys) is never relied on.
+ACCOUNT_SIGNUP_ENABLED = False
+SILENCED_SYSTEM_CHECKS = ["django_recaptcha.recaptcha_test_key_error"]
+
 # No SMTP server is configured; log outgoing email instead of failing the request.
 EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
