@@ -27,9 +27,10 @@ STORAGES = {
 GS_BUCKET_NAME = os.environ["GS_BUCKET_NAME"]
 GS_FILE_OVERWRITE = False
 
-# Origins allowed to submit forms besides the service's own host. Access through
-# `gcloud run services proxy` arrives with Origin http://localhost:8080 while Django sees the
-# run.app host, so CSRF rejects it unless that origin is trusted.
+# Comma-separated hostnames this deployment serves.
+ALLOWED_HOSTS = os.environ["ALLOWED_HOSTS"].split(",")
+
+# Comma-separated origins allowed to submit forms.
 CSRF_TRUSTED_ORIGINS = os.environ["CSRF_TRUSTED_ORIGINS"].split(",")
 
 # Accounts are created by an admin. The signup form rejects submissions, so its reCAPTCHA

@@ -16,6 +16,7 @@ class DeploymentSettingsTestCase(TestCase):
             'DB_USER': 'indigo',
             'DB_PASSWORD': 'test-password',
             'GS_BUCKET_NAME': 'test-indigo-bucket',
+            'ALLOWED_HOSTS': 'indigo.jurisphere.ai',
             'CSRF_TRUSTED_ORIGINS': 'https://indigo.jurisphere.ai',
         }
         for key in ('AWS_ACCESS_KEY_ID', 'AWS_SECRET_ACCESS_KEY', 'AWS_S3_BUCKET', 'SENTRY_DSN'):
