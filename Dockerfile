@@ -38,6 +38,15 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 # install sass for compiling assets before deploying
 RUN npm i -g sass
 
+# Infisical CLI: jurisphere_indigo/entrypoint.sh pulls secrets with it at container start.
+ARG INFISICAL_CLI_VERSION=0.43.119
+ARG INFISICAL_CLI_SHA256=a83e68ebb980d90fd67a177e906dfd91408756e84799d0e81fe03ed35b9f1f9a
+RUN curl -fsSL -o /tmp/infisical.deb \
+      "https://github.com/Infisical/cli/releases/download/v${INFISICAL_CLI_VERSION}/infisical_${INFISICAL_CLI_VERSION}_linux_amd64.deb" \
+    && echo "${INFISICAL_CLI_SHA256}  /tmp/infisical.deb" | sha256sum -c - \
+    && dpkg -i /tmp/infisical.deb \
+    && rm /tmp/infisical.deb
+
 WORKDIR /app
 
 # install runtime node dependencies
@@ -70,6 +79,10 @@ RUN python manage.py collectstatic --noinput -i docs -i \*.scss 2>&1
 # asset pipelining, Sentry logging), so it has to be correct before that module is even imported.
 ENV DJANGO_SETTINGS_MODULE=jurisphere_indigo.settings \
     DJANGO_DEBUG=false
+
+# Every command (the web server, and manage.py in the Cloud Run job) runs with the secrets from
+# Infisical in its environment. Cloud Run jobs override CMD with `args` only, keeping the entrypoint.
+ENTRYPOINT ["/app/jurisphere_indigo/entrypoint.sh"]
 
 # Cloud Run sets $PORT. Document parsing can run for minutes, hence the long worker timeout.
 CMD gunicorn indigo.wsgi --bind 0.0.0.0:${PORT:-8000} --timeout 300 --workers 2
