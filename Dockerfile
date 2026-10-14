@@ -45,11 +45,12 @@ WORKDIR /app
 COPY package*.json /app/
 RUN npm ci --no-audit --ignore-scripts --omit=dev
 
-# Bring pip up to date; pip <= 22 (the default on ubuntu 22.04) is not supported
-RUN pip install --upgrade pip
+# Ubuntu 24.04 marks the system Python as externally managed; this image is the only consumer,
+# so install into it directly. Its bundled pip (24.0) is new enough.
+ENV PIP_BREAK_SYSTEM_PACKAGES=1
 
 # These are production-only dependencies
-RUN pip install psycopg==3.2.12
+RUN pip install psycopg==3.2.12 gunicorn==23.0.0
 
 # Copy the code
 COPY . /app
@@ -62,4 +63,13 @@ RUN python manage.py compilescss
 # Note that we ignore 'docs' directories because some components have badly formed docs CSS.
 RUN python manage.py collectstatic --noinput -i docs -i \*.scss 2>&1
 
-CMD python manage.py
+# Runtime configuration shared by every deployment; per-environment values come from the
+# environment at deploy time. Set after the asset build, which runs on Indigo's default settings.
+# These two must be real env vars (not settings in jurisphere_indigo/settings.py): DEBUG drives
+# several if-DEBUG branches in indigo/settings.py at import time (storage backend, secure cookies,
+# asset pipelining, Sentry logging), so it has to be correct before that module is even imported.
+ENV DJANGO_SETTINGS_MODULE=jurisphere_indigo.settings \
+    DJANGO_DEBUG=false
+
+# Cloud Run sets $PORT. Document parsing can run for minutes, hence the long worker timeout.
+CMD gunicorn indigo.wsgi --bind 0.0.0.0:${PORT:-8000} --timeout 300 --workers 2

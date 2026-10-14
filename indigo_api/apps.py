@@ -1,3 +1,5 @@
+import sys
+
 from django.apps import AppConfig
 from django.conf import settings
 
@@ -21,6 +23,7 @@ class IndigoApiConfig(AppConfig):
         registry.register(ArbitraryExpressionDate)
         registry.register(Commencement)
 
-        if not settings.DEBUG:
+        # Migrations create the tables used by the pruning scheduler.
+        if not settings.DEBUG and sys.argv[1:2] != ['migrate']:
             from indigo_api.tasks import setup_pruning
             setup_pruning()
